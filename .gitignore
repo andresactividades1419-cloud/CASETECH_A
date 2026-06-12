@@ -1,0 +1,32 @@
+# Entornos virtuales de Python
+backend/.venv/
+.venv/
+venv/
+ENV/
+
+# Dependencias de Javascript / Node
+frontend/node_modules/
+node_modules/
+
+# Archivos de configuración local y credenciales (secretos)
+backend/.env
+frontend/.env
+.env
+
+# Compilación y caché
+frontend/dist/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Archivos de configuración de editores/IDE (VS Code, etc.)
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Carpeta de documentación de guías pedagógicas (Excluida por solicitud)
+documentacion_guia/

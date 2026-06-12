@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:15
+    container_name: casetech_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "123456"
+      POSTGRES_DB: casetech_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./casetech_db.sql:/docker-entrypoint-initdb.d/casetech_db.sql
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: casetech_pgadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@casetech.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin123"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+  pgadmin_data:

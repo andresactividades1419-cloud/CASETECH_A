@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casetech - API Test Client Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(20, 26, 46, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --error: #ef4444;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 2rem auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
+            background: linear-gradient(to right, #a5b4fc, #818cf8, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header span {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid var(--border-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fff;
+            border-left: 3px solid var(--primary);
+            padding-left: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        input, select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            color: #fff;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            padding: 0.65rem 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #fff;
+            background: var(--primary);
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        button.success-btn {
+            background: var(--success);
+        }
+        button.success-btn:hover {
+            background: #059669;
+        }
+
+        button.danger-btn {
+            background: var(--error);
+        }
+        button.danger-btn:hover {
+            background: #dc2626;
+        }
+
+        button.secondary-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+        }
+        button.secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Monitor / Visualizador de Consola */
+        .response-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 500px;
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-badge {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        pre {
+            background: #05070f;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 600px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #34d399;
+        }
+
+        .loader {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>CASETECH API CLIENT</h1>
+        <span>Servidor: http://localhost:8000</span>
+    </header>
+
+    <div class="container">
+        <!-- Panel de Entradas e Interacciones -->
+        <div class="panel">
+            <div>
+                <h2>1. Autenticación Administrador</h2>
+                <div class="section-box" style="margin-top: 0.5rem;">
+                    <div class="form-group">
+                        <label for="login-email">Correo</label>
+                        <input type="text" id="login-email" value="luis.admin@casetech.com">
+                    </div>
+                    <div class="form-group" style="margin-top: 0.5rem;">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" value="admin123">
+                    </div>
+                    <button class="success-btn" style="margin-top: 0.75rem; width: 100%;" onclick="executeLogin()">
+                        <div class="loader" id="login-loader"></div>
+                        Iniciar Sesión (POST /api/auth/login)
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <h2>2. Gestión de Proveedores</h2>
+                <div class="section-box" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div class="form-group">
+                        <label for="prov-id">ID Proveedor (para Editar/Inactivar)</label>
+                        <input type="number" id="prov-id" placeholder="Ej: 1">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label for="prov-nit">NIT</label>
+                            <input type="text" id="prov-nit" placeholder="900.555.666-8">
+                        </div>
+                        <div class="form-group">
+                            <label for="prov-razon">Razón Social</label>
+                            <input type="text" id="prov-razon" placeholder="Ladrillera Sabaneta">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label for="prov-contacto">Contacto</label>
+                            <input type="text" id="prov-contacto" placeholder="Pedro Gómez">
+                        </div>
+                        <div class="form-group">
+                            <label for="prov-telefono">Teléfono</label>
+                            <input type="text" id="prov-telefono" placeholder="3105556666">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prov-correo">Correo</label>
+                        <input type="text" id="prov-correo" placeholder="contacto@ladrillera.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="prov-direccion">Dirección</label>
+                        <input type="text" id="prov-direccion" placeholder="Calle 80 KM 5">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label for="prov-estado">Estado</label>
+                            <select id="prov-estado">
+                                <option value="ACTIVO">ACTIVO</option>
+                                <option value="INACTIVO">INACTIVO</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="prov-user">ID Usuario Creador</label>
+                            <input type="number" id="prov-user" value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-grid">
+                    <button onclick="executeList()">Listar (GET)</button>
+                    <button class="success-btn" onclick="executeRegister()">Registrar (POST)</button>
+                    <button onclick="executeModify()">Editar (PUT)</button>
+                    <button class="danger-btn" onclick="executeDisable()">Inactivar (PATCH)</button>
+                </div>
+            </div>
+
+            <div>
+                <h2>3. Reportes Analíticos (SQL Stored Functions)</h2>
+                <div class="button-grid">
+                    <button class="secondary-btn" onclick="executeAnalytics('resumen')">Resumen Gral.</button>
+                    <button class="secondary-btn" onclick="executeAnalytics('por-usuario')">Por Admin</button>
+                    <button class="secondary-btn" onclick="executeAnalytics('tendencia')">Tendencia Reg.</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Respuestas -->
+        <div class="panel response-container">
+            <div class="response-header">
+                <h2>Respuesta del Servidor</h2>
+                <span id="response-status" class="status-badge">Listo para consultas</span>
+            </div>
+            <pre id="response-output">// Presiona algún botón de acción para ver la respuesta de la API aquí...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        function setResponse(statusText, isError, data) {
+            const badge = document.getElementById("response-status");
+            badge.textContent = statusText;
+            if (isError) {
+                badge.className = "status-badge status-error";
+            } else {
+                badge.className = "status-badge status-success";
+            }
+            document.getElementById("response-output").textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function makeRequest(path, method, body = null) {
+            const url = `${API_URL}${path}`;
+            const options = {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            try {
+                const res = await fetch(url, options);
+                const data = await res.json();
+                setResponse(`${res.status} ${res.statusText}`, !res.ok, data);
+            } catch (err) {
+                setResponse("500 Connection Error", true, {
+                    success: false,
+                    message: "No se pudo conectar al servidor FastAPI. Asegúrate de tenerlo encendido en tu consola local.",
+                    error: err.message
+                });
+            }
+        }
+
+        function executeLogin() {
+            const email = document.getElementById("login-email").value;
+            const pass = document.getElementById("login-password").value;
+            makeRequest("/api/auth/login", "POST", { correo: email, password: pass });
+        }
+
+        function executeList() {
+            makeRequest("/api/proveedores", "GET");
+        }
+
+        function executeRegister() {
+            const body = {
+                nit: document.getElementById("prov-nit").value,
+                razon_social: document.getElementById("prov-razon").value,
+                contacto_completo: document.getElementById("prov-contacto").value,
+                telefono: document.getElementById("prov-telefono").value || null,
+                correo: document.getElementById("prov-correo").value || null,
+                direccion: document.getElementById("prov-direccion").value || null,
+                estado: document.getElementById("prov-estado").value,
+                usuario_id: parseInt(document.getElementById("prov-user").value)
+            };
+            makeRequest("/api/proveedores", "POST", body);
+        }
+
+        function executeModify() {
+            const id = document.getElementById("prov-id").value;
+            if (!id) {
+                alert("Debes ingresar el ID del proveedor a modificar en la parte superior del formulario.");
+                return;
+            }
+            const body = {
+                razon_social: document.getElementById("prov-razon").value,
+                contacto_completo: document.getElementById("prov-contacto").value,
+                telefono: document.getElementById("prov-telefono").value || null,
+                correo: document.getElementById("prov-correo").value || null,
+                direccion: document.getElementById("prov-direccion").value || null,
+                estado: document.getElementById("prov-estado").value
+            };
+            makeRequest(`/api/proveedores/${id}`, "PUT", body);
+        }
+
+        function executeDisable() {
+            const id = document.getElementById("prov-id").value;
+            if (!id) {
+                alert("Debes ingresar el ID del proveedor a desactivar en la parte superior del formulario.");
+                return;
+            }
+            makeRequest(`/api/proveedores/${id}/desactivar`, "PATCH");
+        }
+
+        function executeAnalytics(type) {
+            makeRequest(`/api/proveedores/analitica/${type}`, "GET");
+        }
+    </script>
+</body>
+</html>
