@@ -30,10 +30,10 @@ export default function PanelProveedores() {
         providerService.getResumenAnalitica()
       ]);
       
-      if (providersData.success) {
+      if (providersData.status === 'success') {
         setProviders(providersData.data);
       }
-      if (statsData.success) {
+      if (statsData.status === 'success') {
         setStats(statsData.data);
       }
     } catch (err) {

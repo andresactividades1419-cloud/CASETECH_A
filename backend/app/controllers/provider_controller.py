@@ -15,10 +15,9 @@ def get_all_providers(db: Session):
     providers = [dict(row) for row in result]
     
     return {
-        "success": True,
+        "status": "success",
         "message": "Listado de proveedores obtenido",
-        "data": providers,
-        "error": None
+        "data": providers
     }
 
 def create_provider(db: Session, provider: ProviderCreateSchema):
@@ -70,10 +69,9 @@ def create_provider(db: Session, provider: ProviderCreateSchema):
         )
         
     return {
-        "success": True,
+        "status": "success",
         "message": "Proveedor registrado exitosamente",
-        "data": None,
-        "error": None
+        "data": None
     }
 
 def update_provider(db: Session, provider_id: int, provider: ProviderUpdateSchema):
@@ -117,10 +115,9 @@ def update_provider(db: Session, provider_id: int, provider: ProviderUpdateSchem
         )
         
     return {
-        "success": True,
+        "status": "success",
         "message": "Proveedor actualizado exitosamente",
-        "data": None,
-        "error": None
+        "data": None
     }
 
 def disable_provider(db: Session, provider_id: int):
@@ -146,10 +143,9 @@ def disable_provider(db: Session, provider_id: int):
         )
         
     return {
-        "success": True,
+        "status": "success",
         "message": "Proveedor desactivado exitosamente (eliminación lógica)",
-        "data": None,
-        "error": None
+        "data": None
     }
 
 # --- CONTROLADORES PARA FUNCIONES ANALÍTICAS ---
@@ -158,10 +154,9 @@ def get_resumen_proveedores(db: Session):
     query = text("SELECT * FROM sp_analitica_resumen_proveedores()")
     result = db.execute(query).mappings().first()
     return {
-        "success": True,
+        "status": "success",
         "message": "Resumen analítico obtenido",
-        "data": dict(result) if result else {"total_proveedores": 0, "activos": 0, "inactivos": 0},
-        "error": None
+        "data": dict(result) if result else {"total_proveedores": 0, "activos": 0, "inactivos": 0}
     }
 
 def get_proveedores_por_usuario(db: Session):
@@ -169,10 +164,9 @@ def get_proveedores_por_usuario(db: Session):
     result = db.execute(query).mappings().all()
     data = [dict(row) for row in result]
     return {
-        "success": True,
+        "status": "success",
         "message": "Actividad de registros por administrador obtenida",
-        "data": data,
-        "error": None
+        "data": data
     }
 
 def get_tendencia_registros(db: Session):
@@ -180,8 +174,7 @@ def get_tendencia_registros(db: Session):
     result = db.execute(query).mappings().all()
     data = [dict(row) for row in result]
     return {
-        "success": True,
+        "status": "success",
         "message": "Tendencia de registros mensuales obtenida",
-        "data": data,
-        "error": None
+        "data": data
     }

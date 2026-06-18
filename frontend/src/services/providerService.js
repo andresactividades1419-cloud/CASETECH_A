@@ -6,7 +6,7 @@ export const providerService = {
       const response = await fetch(`${API_URL}/api/proveedores`);
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al obtener los proveedores');
+        throw new Error(data.message || 'Error al obtener los proveedores');
       }
       return data;
     } catch (error) {
@@ -26,7 +26,7 @@ export const providerService = {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al registrar el proveedor');
+        throw new Error(data.message || 'Error al registrar el proveedor');
       }
       return data;
     } catch (error) {
@@ -46,7 +46,7 @@ export const providerService = {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al actualizar el proveedor');
+        throw new Error(data.message || 'Error al actualizar el proveedor');
       }
       return data;
     } catch (error) {
@@ -62,7 +62,7 @@ export const providerService = {
       });
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al desactivar el proveedor');
+        throw new Error(data.message || 'Error al desactivar el proveedor');
       }
       return data;
     } catch (error) {
@@ -77,7 +77,7 @@ export const providerService = {
       const response = await fetch(`${API_URL}/api/proveedores/analitica/resumen`);
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al obtener el resumen analítico');
+        throw new Error(data.message || 'Error al obtener el resumen analítico');
       }
       return data;
     } catch (error) {
@@ -91,7 +91,7 @@ export const providerService = {
       const response = await fetch(`${API_URL}/api/proveedores/analitica/por-usuario`);
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al obtener analítica por administrador');
+        throw new Error(data.message || 'Error al obtener analítica por administrador');
       }
       return data;
     } catch (error) {
@@ -105,7 +105,7 @@ export const providerService = {
       const response = await fetch(`${API_URL}/api/proveedores/analitica/tendencia`);
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.detail || 'Error al obtener tendencia de registros');
+        throw new Error(data.message || 'Error al obtener tendencia de registros');
       }
       return data;
     } catch (error) {

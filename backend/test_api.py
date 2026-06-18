@@ -15,7 +15,7 @@ def make_request(url, method="GET", data=None):
         res_body = e.read().decode("utf-8")
         return e.code, json.loads(res_body)
     except Exception as e:
-        return 500, {"success": False, "message": str(e), "data": None, "error": str(e)}
+        return 500, {"status": "error", "message": str(e), "data": None}
 
 def run_tests():
     print("=== INICIANDO PRUEBAS DE ENDPOINTS DE LA API ===")
@@ -41,7 +41,7 @@ def run_tests():
     # 3. Test Listado de Proveedores
     print("\n3. Probando Obtener Proveedores...")
     code, res = make_request(f"{BASE_URL}/api/proveedores")
-    print(f"Status: {code} | Total proveedores obtenidos: {len(res.get('data', [])) if res.get('success') else 0}")
+    print(f"Status: {code} | Total proveedores obtenidos: {len(res.get('data', [])) if res.get('status') == 'success' else 0}")
     print(f"Response: {res}")
 
     # 4. Registrar Proveedor (sp_registrar_proveedor)

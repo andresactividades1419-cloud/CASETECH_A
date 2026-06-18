@@ -33,13 +33,12 @@ def login_user(db: Session, credentials: LoginSchema):
     
     # Retornar estructura de respuesta estándar
     return {
-        "success": True,
+        "status": "success",
         "message": "Inicio de sesión exitoso",
         "data": {
             "id": user_id,
             "nombre": nombre,
             "correo": correo,
             "rol": rol
-        },
-        "error": None
+        }
     }

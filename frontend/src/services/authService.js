@@ -14,10 +14,10 @@ export const authService = {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.detail || 'Error en las credenciales');
+        throw new Error(data.message || 'Error en las credenciales');
       }
       
-      if (data.success && data.data) {
+      if (data.status === 'success' && data.data) {
         localStorage.setItem('casetech_user', JSON.stringify(data.data));
       }
       
