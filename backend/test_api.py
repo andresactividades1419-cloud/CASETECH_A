@@ -13,12 +13,15 @@ def make_request(url, method="GET", data=None):
             return response.status, json.loads(res_body)
     except urllib.error.HTTPError as e:
         res_body = e.read().decode("utf-8")
-        return e.code, json.loads(res_body)
+        try:
+            return e.code, json.loads(res_body)
+        except Exception:
+            return e.code, {"success": False, "message": "Raw Error", "data": None, "error": res_body}
     except Exception as e:
-        return 500, {"status": "error", "message": str(e), "data": None}
+        return 500, {"success": False, "message": str(e), "data": None, "error": str(e)}
 
 def run_tests():
-    print("=== INICIANDO PRUEBAS DE ENDPOINTS DE LA API ===")
+    print("=== INICIANDO PRUEBAS DE ENDPOINTS DE LA API (SPRINT 1) ===")
     
     # 1. Test Login Exitoso
     print("\n1. Probando Login Exitoso...")
@@ -30,7 +33,7 @@ def run_tests():
     print(f"Status: {code} | Response: {res}")
     
     # 2. Test Login Fallido
-    print("\n2. Probando Login Fallido...")
+    print("\n2. Probando Login Fallido (Contraseña Incorrecta)...")
     code, res = make_request(
         f"{BASE_URL}/api/auth/login", 
         method="POST", 
@@ -41,7 +44,7 @@ def run_tests():
     # 3. Test Listado de Proveedores
     print("\n3. Probando Obtener Proveedores...")
     code, res = make_request(f"{BASE_URL}/api/proveedores")
-    print(f"Status: {code} | Total proveedores obtenidos: {len(res.get('data', [])) if res.get('status') == 'success' else 0}")
+    print(f"Status: {code} | Total proveedores obtenidos: {len(res.get('data', [])) if res.get('success') else 0}")
     print(f"Response: {res}")
 
     # 4. Registrar Proveedor (sp_registrar_proveedor)
@@ -53,7 +56,6 @@ def run_tests():
         "telefono": "3128887777",
         "correo": "contacto@maderascasetech.com",
         "direccion": "Zona Industrial Lote 14",
-        "estado": "ACTIVO",
         "usuario_id": 1
     }
     code, res = make_request(f"{BASE_URL}/api/proveedores", method="POST", data=new_provider)
@@ -81,8 +83,7 @@ def run_tests():
             "contacto_completo": "Andrés Felipe Restrepo",
             "telefono": "3129990000",
             "correo": "ventas@maderascasetech.com",
-            "direccion": "Zona Industrial Lote 15",
-            "estado": "ACTIVO"
+            "direccion": "Zona Industrial Lote 15"
         }
         code, res = make_request(f"{BASE_URL}/api/proveedores/{target_id}", method="PUT", data=updated_data)
         print(f"Status: {code} | Response: {res}")
@@ -91,19 +92,6 @@ def run_tests():
         print(f"\n7. Probando Desactivación (Eliminación Lógica) del Proveedor ID {target_id}...")
         code, res = make_request(f"{BASE_URL}/api/proveedores/{target_id}/desactivar", method="PATCH")
         print(f"Status: {code} | Response: {res}")
-
-    # 8. Consultar Analíticas
-    print("\n8. Probando Endpoint Analítico: Resumen...")
-    code, res = make_request(f"{BASE_URL}/api/proveedores/analitica/resumen")
-    print(f"Status: {code} | Response: {res}")
-
-    print("\n9. Probando Endpoint Analítico: Por Usuario...")
-    code, res = make_request(f"{BASE_URL}/api/proveedores/analitica/por-usuario")
-    print(f"Status: {code} | Response: {res}")
-
-    print("\n10. Probando Endpoint Analítico: Tendencia...")
-    code, res = make_request(f"{BASE_URL}/api/proveedores/analitica/tendencia")
-    print(f"Status: {code} | Response: {res}")
 
     print("\n=== PRUEBAS CONCLUIDAS ===")
 

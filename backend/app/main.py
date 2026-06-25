@@ -14,7 +14,7 @@ app = FastAPI(
 # Configuración de CORS para permitir conexiones desde el Frontend (React)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, se debe limitar al origen específico del cliente
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,21 +26,31 @@ async def custom_http_exception_handler(request, exc):
     return JSONResponse(
         status_code=exc.status_code,
         content={
-            "status": "error",
+            "success": False,
             "message": exc.detail,
-            "data": None
+            "data": None,
+            "error": f"HTTPException: {exc.detail}"
         }
     )
 
 # Manejador global para errores de validación de esquemas (Pydantic)
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
+    errors_detail = []
+    for err in exc.errors():
+        loc = " -> ".join(str(x) for x in err.get("loc", []))
+        msg = err.get("msg", "Error de validación")
+        errors_detail.append(f"{loc}: {msg}")
+    
+    technical_error = "; ".join(errors_detail)
+    
     return JSONResponse(
-        status_code=400,  # Retornar 400 Bad Request en lugar de 422 para simplificar manejo de cliente
+        status_code=400,
         content={
-            "status": "error",
+            "success": False,
             "message": "Error de validación en los datos de entrada",
-            "data": None
+            "data": None,
+            "error": technical_error
         }
     )
 
@@ -51,7 +61,12 @@ app.include_router(provider_routes.router)
 @app.get("/")
 def read_root():
     return {
-        "status": "success",
+        "success": True,
         "message": "Bienvenido a la API de Casetech",
-        "version": "1.0.0"
+        "data": {
+            "version": "1.0.0",
+            "sprint": 1,
+            "modulos": ["Módulo 0: Autenticación", "Módulo 1: Gestión de Proveedores"]
+        },
+        "error": None
     }

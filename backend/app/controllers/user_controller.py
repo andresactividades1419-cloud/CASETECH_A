@@ -1,44 +1,47 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import text
 from fastapi import HTTPException, status
+from app.models.user_model import UserModel
 from app.schemas.user_schema import LoginSchema
 
 def login_user(db: Session, credentials: LoginSchema):
-    # Query plano parametrizado para buscar el usuario por correo
-    query = text("SELECT id, nombre, correo, password, rol FROM usuarios WHERE correo = :correo")
-    result = db.execute(query, {"correo": credentials.correo}).fetchone()
+    # Buscar el usuario en la base de datos por correo
+    user = db.query(UserModel).filter(UserModel.correo == credentials.correo).first()
     
     # Validar si el usuario existe
-    if not result:
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales incorrectas"
         )
     
-    user_id, nombre, correo, password, rol = result
-    
-    # Validar la contraseña (en texto plano por requerimiento actual)
-    if password != credentials.password:
+    # Validar la contraseña en texto plano
+    if user.password != credentials.password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales incorrectas"
         )
-    
-    # Validar que sea un administrador
-    if rol != "ADMINISTRADOR":
+        
+    # Validar rol de administrador
+    if user.rol != "ADMINISTRADOR":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acceso restringido: Solo los administradores pueden ingresar"
         )
-    
-    # Retornar estructura de respuesta estándar
+        
+    # Validar que el usuario esté activo
+    if user.estado.value != "ACTIVO" if hasattr(user.estado, "value") else user.estado != "ACTIVO":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario inactivo, contacte al soporte"
+        )
+        
     return {
-        "status": "success",
+        "success": True,
         "message": "Inicio de sesión exitoso",
         "data": {
-            "id": user_id,
-            "nombre": nombre,
-            "correo": correo,
-            "rol": rol
-        }
+            "id": user.id,
+            "correo": user.correo,
+            "rol": user.rol
+        },
+        "error": None
     }

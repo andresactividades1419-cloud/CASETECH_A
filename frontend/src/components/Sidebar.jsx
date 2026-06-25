@@ -1,102 +1,259 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../services/authService';
+import { LayoutDashboard, Users, FileText, Package, LogOut, User } from 'lucide-react';
 
-export default function Sidebar() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleLogout = () => {
-    authService.logout();
-    navigate('/login');
-  };
+export default function Sidebar({ activeTab, setActiveTab, user, onLogout }) {
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard / Reportes', icon: LayoutDashboard },
+    { id: 'proveedores', label: 'Proveedores', icon: Users },
+    { id: 'pedidos', label: 'Pedidos y Compras', icon: FileText, disabled: true },
+    { id: 'inventarios', label: 'Control de Inventarios', icon: Package, disabled: true }
+  ];
 
   return (
-    <aside className="glass-panel" style={{
-      width: '260px',
-      margin: '20px 0 20px 20px',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      padding: '24px 16px',
-      borderRight: '1px solid var(--border-light)'
-    }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-        {/* Brand/Logo Section in Sidebar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0 8px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 10px rgba(6, 182, 212, 0.3)'
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-            </svg>
+    <div style={styles.sidebar}>
+      <div style={styles.header}>
+        <div style={styles.logoContainer}>
+          <div style={styles.logoBadge}>
+            <Package size={20} color="var(--bg-primary)" />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#fff', letterSpacing: '0.5px' }}>CASETECH</h1>
-            <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>Módulos del Sistema</span>
+            <h2 style={styles.logoText}>CASETECH</h2>
+            <p style={styles.logoSubtext}>MÓDULOS DEL SISTEMA</p>
+          </div>
+        </div>
+      </div>
+
+      <nav style={styles.nav}>
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => !item.disabled && setActiveTab(item.id)}
+              style={{
+                ...styles.navBtn,
+                ...(isActive ? styles.navBtnActive : {}),
+                ...(item.disabled ? styles.navBtnDisabled : {})
+              }}
+              title={item.disabled ? 'Disponible en siguientes Sprints' : ''}
+            >
+              <Icon size={20} style={isActive ? styles.activeIcon : styles.icon} />
+              <span>{item.label}</span>
+              {item.disabled && (
+                <span style={styles.pill}>SP2</span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div style={styles.footer}>
+        <div style={styles.userInfo}>
+          <div style={styles.avatar}>
+            <User size={18} color="var(--accent-cyan)" />
+          </div>
+          <div style={styles.userDetails}>
+            <h4 style={styles.userName}>{user?.correo?.split('@')[0]}</h4>
+            <p style={styles.userRole}>{user?.rol || 'ADMINISTRADOR'}</p>
           </div>
         </div>
 
-        {/* Navigation Section */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div 
-            onClick={() => navigate('/')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '12px 16px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '500',
-              fontSize: '0.95rem',
-              color: 'var(--color-text-main)',
-              background: 'rgba(6, 182, 212, 0.1)',
-              borderLeft: '4px solid var(--color-secondary)',
-              boxShadow: 'inset 0 0 8px rgba(6, 182, 212, 0.05)',
-              transition: 'all 0.2s'
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-            Proveedores
-          </div>
-        </nav>
+        <button onClick={onLogout} style={styles.logoutBtn}>
+          <LogOut size={16} />
+          <span>Cerrar Sesión</span>
+        </button>
       </div>
-
-      {/* Logout Button */}
-      <button 
-        onClick={handleLogout}
-        className="btn-danger" 
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '10px',
-          padding: '12px',
-          fontSize: '0.95rem',
-          fontWeight: '500'
-        }}
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-          <polyline points="16 17 21 12 16 7"></polyline>
-          <line x1="21" y1="12" x2="9" y2="12"></line>
-        </svg>
-        Cerrar Sesión
-      </button>
-    </aside>
+    </div>
   );
 }
+
+const styles = {
+  sidebar: {
+    width: '280px',
+    backgroundColor: 'var(--bg-secondary)',
+    borderRight: '1px solid var(--border-color)',
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+    position: 'sticky',
+    top: 0,
+  },
+  header: {
+    padding: '2rem 1.5rem',
+    borderBottom: '1px solid var(--border-color)',
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  logoBadge: {
+    width: '38px',
+    height: '38px',
+    borderRadius: '8px',
+    background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-cyan-hover))',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    boxShadow: '0 4px 8px var(--accent-cyan-glow)',
+  },
+  logoText: {
+    fontSize: '1.15rem',
+    fontWeight: '700',
+    letterSpacing: '0.05em',
+  },
+  logoSubtext: {
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    fontWeight: '500',
+  },
+  nav: {
+    flex: 1,
+    padding: '2rem 1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  navBtn: {
+    background: 'none',
+    border: 'none',
+    outline: 'none',
+    color: 'var(--text-muted)',
+    fontFamily: 'var(--font-title)',
+    fontSize: '0.95rem',
+    fontWeight: '500',
+    padding: '0.85rem 1rem',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    transition: 'var(--transition-smooth)',
+    textAlign: 'left',
+    width: '100%',
+    position: 'relative',
+  },
+  navBtnActive: {
+    color: 'var(--accent-cyan)',
+    backgroundColor: 'rgba(0, 180, 216, 0.06)',
+    fontWeight: '600',
+    borderLeft: '3px solid var(--accent-cyan)',
+    paddingLeft: 'calc(1rem - 3px)',
+  },
+  navBtnDisabled: {
+    opacity: 0.4,
+    cursor: 'not-allowed',
+  },
+  icon: {
+    color: 'var(--text-muted)',
+  },
+  activeIcon: {
+    color: 'var(--accent-cyan)',
+  },
+  pill: {
+    position: 'absolute',
+    right: '1rem',
+    fontSize: '0.65rem',
+    backgroundColor: 'var(--bg-tertiary)',
+    padding: '0.15rem 0.4rem',
+    borderRadius: '4px',
+    color: 'var(--text-muted)',
+    border: '1px solid var(--border-color)',
+  },
+  footer: {
+    padding: '1.5rem',
+    borderTop: '1px solid var(--border-color)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+  },
+  userInfo: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  avatar: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(0, 180, 216, 0.08)',
+    border: '1px solid rgba(0, 180, 216, 0.15)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userDetails: {
+    overflow: 'hidden',
+  },
+  userName: {
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    textTransform: 'capitalize',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  userRole: {
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    fontWeight: '500',
+  },
+  logoutBtn: {
+    background: 'rgba(239, 68, 68, 0.05)',
+    border: '1px solid rgba(239, 68, 68, 0.15)',
+    borderRadius: '8px',
+    color: 'var(--accent-red)',
+    fontFamily: 'var(--font-title)',
+    fontWeight: '600',
+    fontSize: '0.85rem',
+    padding: '0.65rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    transition: 'var(--transition-smooth)',
+    width: '100%',
+  },
+  logoutBtn: {
+    background: 'rgba(239, 68, 68, 0.05)',
+    border: '1px solid rgba(239, 68, 68, 0.15)',
+    borderRadius: '8px',
+    color: 'var(--accent-red)',
+    fontFamily: 'var(--font-title)',
+    fontWeight: '600',
+    fontSize: '0.85rem',
+    padding: '0.65rem',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    transition: 'var(--transition-smooth)',
+    width: '100%',
+  },
+};
+// Quick style fix duplication cleanup
+styles.logoutBtn = {
+  background: 'rgba(239, 68, 68, 0.05)',
+  border: '1px solid rgba(239, 68, 68, 0.15)',
+  borderRadius: '8px',
+  color: 'var(--accent-red)',
+  fontFamily: 'var(--font-title)',
+  fontWeight: '600',
+  fontSize: '0.85rem',
+  padding: '0.65rem',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '0.5rem',
+  transition: 'var(--transition-smooth)',
+  width: '100%',
+};
+styles.logoutBtnHover = {
+  background: 'var(--accent-red)',
+  color: 'var(--text-main)'
+};

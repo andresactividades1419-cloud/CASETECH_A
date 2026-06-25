@@ -1,52 +1,60 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './views/Login';
-import PanelProveedores from './views/PanelProveedores';
-import Navbar from './components/Navbar';
+import React, { useState, useEffect } from 'react';
+import Login from './components/Login';
 import Sidebar from './components/Sidebar';
-import { authService } from './services/authService';
-
-// Guard Component to protect routes requiring authentication
-function ProtectedRoute({ children }) {
-  const isAuth = authService.isAuthenticated();
-  return isAuth ? children : <Navigate to="/login" replace />;
-}
-
-// Main Layout wrapping the sidebar, navbar, and core page contents
-function MainLayout() {
-  return (
-    <div className="app-container">
-      <Sidebar />
-      <div className="main-wrapper">
-        <Navbar />
-        <main className="content-area">
-          <PanelProveedores />
-        </main>
-      </div>
-    </div>
-  );
-}
+import DashboardView from './components/DashboardView';
+import ProvidersView from './components/ProvidersView';
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [providerCount, setProviderCount] = useState(0);
+
+  // Cargar sesión del usuario al montar el componente
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    setActiveTab('dashboard');
+  };
+
+  // Si el usuario no ha iniciado sesión, mostrar la pantalla de Login
+  if (!user) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
+    <div className="app-container">
+      {/* Panel lateral de navegación */}
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        user={user}
+        onLogout={handleLogout}
+      />
 
-        {/* Private Routes (Protected by Auth Guard) */}
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          } 
-        />
-
-        {/* Catch-all Redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+      {/* Contenido principal de la página activa */}
+      <main className="main-content">
+        {activeTab === 'dashboard' && (
+          <DashboardView providerCount={providerCount} />
+        )}
+        {activeTab === 'proveedores' && (
+          <ProvidersView onUpdateProviderCount={setProviderCount} />
+        )}
+      </main>
+    </div>
   );
 }

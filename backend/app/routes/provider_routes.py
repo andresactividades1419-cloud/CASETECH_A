@@ -9,22 +9,6 @@ router = APIRouter(
     tags=["Proveedores"]
 )
 
-# --- Rutas Analíticas (deben ir antes de las dinámicas para evitar conflictos) ---
-
-@router.get("/analitica/resumen")
-def get_resumen(db: Session = Depends(get_db)):
-    return provider_controller.get_resumen_proveedores(db)
-
-@router.get("/analitica/por-usuario")
-def get_por_usuario(db: Session = Depends(get_db)):
-    return provider_controller.get_proveedores_por_usuario(db)
-
-@router.get("/analitica/tendencia")
-def get_tendencia(db: Session = Depends(get_db)):
-    return provider_controller.get_tendencia_registros(db)
-
-# --- Rutas Operacionales (CRUD) ---
-
 @router.get("")
 def list_providers(db: Session = Depends(get_db)):
     return provider_controller.get_all_providers(db)

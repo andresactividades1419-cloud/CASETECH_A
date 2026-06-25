@@ -1,296 +1,313 @@
 import React, { useState, useEffect } from 'react';
-import { authService } from '../services/authService';
+import { createProviderAPI, updateProviderAPI } from '../services/api';
+import { X, Loader2, AlertCircle } from 'lucide-react';
 
-export default function ProviderModal({ isOpen, onClose, onSave, provider }) {
+export default function ProviderModal({ provider, onClose, onSaveSuccess }) {
   const isEdit = !!provider;
-  const currentUser = authService.getCurrentUser();
-
-  const [formData, setFormData] = useState({
-    nit: '',
-    razon_social: '',
-    contacto_completo: '',
-    telefono: '',
-    correo: '',
-    direccion: '',
-    estado: 'ACTIVO',
-    usuario_id: currentUser ? currentUser.id : 1
-  });
-
-  const [error, setError] = useState('');
+  
+  const [nit, setNit] = useState('');
+  const [razonSocial, setRazonSocial] = useState('');
+  const [contactoCompleto, setContactoCompleto] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [correo, setCorreo] = useState('');
+  const [direccion, setDireccion] = useState('');
+  
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Sync state with the provider prop when opening the modal
   useEffect(() => {
     if (provider) {
-      setFormData({
-        nit: provider.nit || '',
-        razon_social: provider.razon_social || '',
-        contacto_completo: provider.contacto_completo || '',
-        telefono: provider.telefono || '',
-        correo: provider.correo || '',
-        direccion: provider.direccion || '',
-        estado: provider.estado || 'ACTIVO',
-        usuario_id: provider.usuario_id || (currentUser ? currentUser.id : 1)
-      });
+      setNit(provider.nit || '');
+      setRazonSocial(provider.razon_social || '');
+      setContactoCompleto(provider.contacto_completo || '');
+      setTelefono(provider.telefono || '');
+      setCorreo(provider.correo || '');
+      setDireccion(provider.direccion || '');
     } else {
-      setFormData({
-        nit: '',
-        razon_social: '',
-        contacto_completo: '',
-        telefono: '',
-        correo: '',
-        direccion: '',
-        estado: 'ACTIVO',
-        usuario_id: currentUser ? currentUser.id : 1
-      });
+      setNit('');
+      setRazonSocial('');
+      setContactoCompleto('');
+      setTelefono('');
+      setCorreo('');
+      setDireccion('');
     }
-    setError('');
-  }, [provider, isOpen, currentUser]);
-
-  if (!isOpen) return null;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    setError(null);
+  }, [provider]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(null);
 
-    // Client-side validations
-    if (!formData.nit.trim()) {
-      setError('El NIT es requerido.');
+    // Validar campos obligatorios
+    if (!isEdit && !nit.trim()) {
+      setError('El NIT es obligatorio.');
       return;
     }
-    if (!formData.razon_social.trim()) {
-      setError('La Razón Social es requerida.');
+    if (!razonSocial.trim() || !contactoCompleto.trim() || !telefono.trim() || !correo.trim() || !direccion.trim()) {
+      setError('Todos los campos son obligatorios.');
       return;
     }
-    if (!formData.contacto_completo.trim()) {
-      setError('El Nombre Completo del Contacto es requerido.');
+
+    const emailRegex = /^[\w\.-]+@[\w\.-]+\.\w+$/;
+    if (!emailRegex.test(correo)) {
+      setError('Formato de correo electrónico inválido.');
       return;
     }
 
     setLoading(true);
     try {
-      await onSave(formData);
-      onClose();
+      if (isEdit) {
+        // En modificación no se envía el NIT
+        const response = await updateProviderAPI(provider.id, {
+          razon_social: razonSocial.trim(),
+          contacto_completo: contactoCompleto.trim(),
+          telefono: telefono.trim(),
+          correo: correo.trim(),
+          direccion: direccion.trim()
+        });
+        if (response.success) {
+          onSaveSuccess(response.message || 'Proveedor actualizado exitosamente');
+        } else {
+          throw new Error(response.message || 'Error al actualizar proveedor');
+        }
+      } else {
+        const response = await createProviderAPI({
+          nit: nit.trim(),
+          razon_social: razonSocial.trim(),
+          contacto_completo: contactoCompleto.trim(),
+          telefono: telefono.trim(),
+          correo: correo.trim(),
+          direccion: direccion.trim(),
+          usuario_id: 1 // Id de administrador simulado para compatibilidad API
+        });
+        if (response.success) {
+          onSaveSuccess(response.message || 'Proveedor registrado exitosamente');
+        } else {
+          throw new Error(response.message || 'Error al registrar proveedor');
+        }
+      }
     } catch (err) {
-      setError(err.message || 'Ocurrió un error al guardar el proveedor.');
+      setError(err.message || 'Error al guardar los datos');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(7, 10, 19, 0.85)',
-      backdropFilter: 'blur(8px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px'
-    }}>
-      <div className="glass-panel-glow" style={{
-        width: '100%',
-        maxWidth: '550px',
-        padding: '30px',
-        position: 'relative'
-      }}>
-        {/* Close Button */}
-        <button 
-          onClick={onClose} 
-          className="btn-icon" 
-          style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            fontSize: '1.5rem'
-          }}
-        >
-          &times;
-        </button>
-
-        <h2 style={{
-          fontSize: '1.5rem',
-          fontWeight: '700',
-          marginBottom: '24px',
-          background: 'linear-gradient(90deg, #fff 0%, var(--color-secondary) 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
-        }}>
-          {isEdit ? 'Modificar Proveedor' : 'Registrar Nuevo Proveedor'}
-        </h2>
+    <div style={styles.backdrop}>
+      <div className="animate-fade-in" style={styles.modal}>
+        <div style={styles.header}>
+          <h2 style={styles.title}>{isEdit ? 'Editar Proveedor' : 'Registrar Proveedor'}</h2>
+          <button onClick={onClose} style={styles.closeBtn} disabled={loading}>
+            <X size={20} />
+          </button>
+        </div>
 
         {error && (
-          <div style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.25)',
-            color: '#f87171',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            fontSize: '0.9rem',
-            fontWeight: '500'
-          }}>
-            {error}
+          <div style={styles.errorBox}>
+            <AlertCircle size={18} color="var(--accent-red)" />
+            <span style={styles.errorText}>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* NIT Field */}
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">NIT / Identificación *</label>
-              <input
-                type="text"
-                name="nit"
-                value={formData.nit}
-                onChange={handleChange}
-                disabled={isEdit}
-                className="input-control"
-                placeholder="Ej: 900.999.888-1"
-                required
-              />
-              {isEdit && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px', display: 'block' }}>
-                  El NIT no puede ser modificado por requerimiento fiscal.
-                </span>
-              )}
-            </div>
-
-            {/* Razón Social */}
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Razón Social *</label>
-              <input
-                type="text"
-                name="razon_social"
-                value={formData.razon_social}
-                onChange={handleChange}
-                className="input-control"
-                placeholder="Nombre de la empresa"
-                required
-              />
-            </div>
-
-            {/* Contacto Completo */}
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Contacto Comercial Completo *</label>
-              <input
-                type="text"
-                name="contacto_completo"
-                value={formData.contacto_completo}
-                onChange={handleChange}
-                className="input-control"
-                placeholder="Nombre completo del asesor comercial"
-                required
-              />
-            </div>
-
-            {/* Teléfono */}
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <div style={styles.grid}>
             <div className="form-group">
-              <label className="form-label">Teléfono</label>
+              <label htmlFor="modal-nit">NIT / Identificación</label>
               <input
+                id="modal-nit"
                 type="text"
-                name="telefono"
-                value={formData.telefono}
-                onChange={handleChange}
-                className="input-control"
-                placeholder="Ej: 3154445555"
+                className="form-control"
+                placeholder="890123456-1"
+                value={nit}
+                onChange={(e) => setNit(e.target.value)}
+                disabled={isEdit || loading}
+                style={isEdit ? styles.disabledInput : {}}
               />
             </div>
 
-            {/* Correo */}
             <div className="form-group">
-              <label className="form-label">Correo Electrónico</label>
+              <label htmlFor="modal-rs">Razón Social</label>
               <input
-                type="email"
-                name="correo"
-                value={formData.correo}
-                onChange={handleChange}
-                className="input-control"
-                placeholder="Ej: correo@empresa.com"
-              />
-            </div>
-
-            {/* Dirección */}
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Dirección</label>
-              <input
+                id="modal-rs"
                 type="text"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
-                className="input-control"
-                placeholder="Dirección comercial"
+                className="form-control"
+                placeholder="Maderas del Norte S.A."
+                value={razonSocial}
+                onChange={(e) => setRazonSocial(e.target.value)}
+                disabled={loading}
               />
             </div>
 
-            {/* Estado (Only visible/editable in edit mode, as new providers default to ACTIVO) */}
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Estado</label>
-              <select
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                className="input-control"
-                style={{ appearance: 'none', backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center', backgroundSize: '16px' }}
-              >
-                <option value="ACTIVO" style={{ backgroundColor: 'var(--bg-dark-panel)' }}>ACTIVO</option>
-                <option value="INACTIVO" style={{ backgroundColor: 'var(--bg-dark-panel)' }}>INACTIVO</option>
-              </select>
+            <div className="form-group">
+              <label htmlFor="modal-contacto">Contacto Completo</label>
+              <input
+                id="modal-contacto"
+                type="text"
+                className="form-control"
+                placeholder="Nombre del encargado"
+                value={contactoCompleto}
+                onChange={(e) => setContactoCompleto(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="modal-tel">Teléfono</label>
+              <input
+                id="modal-tel"
+                type="text"
+                className="form-control"
+                placeholder="3120000000"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="modal-correo">Correo Electrónico</label>
+              <input
+                id="modal-correo"
+                type="text"
+                className="form-control"
+                placeholder="contacto@empresa.com"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="modal-dir">Dirección Física</label>
+              <input
+                id="modal-dir"
+                type="text"
+                className="form-control"
+                placeholder="Calle 10 #20-30"
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+                disabled={loading}
+              />
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '12px',
-            marginTop: '24px',
-            borderTop: '1px solid var(--border-light)',
-            paddingTop: '20px'
-          }}>
-            <button type="button" onClick={onClose} className="btn-secondary" disabled={loading}>
+          <div style={styles.actions}>
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={loading}>
               Cancelar
             </button>
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading} style={styles.saveBtn}>
               {loading ? (
                 <>
-                  <svg className="animate-spin" style={{ animation: 'spin 1s linear infinite', marginRight: '8px' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <circle cx="12" cy="12" r="10" strokeOpacity="0.25"></circle>
-                    <path d="M4 12a8 8 0 0 1 8-8"></path>
-                  </svg>
-                  Guardando...
+                  <Loader2 size={18} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+                  <span>Guardando...</span>
                 </>
               ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  {isEdit ? 'Guardar Cambios' : 'Registrar'}
-                </>
+                <span>Guardar Proveedor</span>
               )}
             </button>
           </div>
         </form>
       </div>
-      
+
       <style>{`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
   );
 }
+
+const styles = {
+  backdrop: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(5, 8, 16, 0.75)',
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  },
+  modal: {
+    backgroundColor: 'var(--bg-card)',
+    borderRadius: '16px',
+    border: '1px solid var(--border-color)',
+    width: '100%',
+    maxWidth: '640px',
+    padding: '2rem',
+    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1.5rem',
+    borderBottom: '1px solid var(--border-color)',
+    paddingBottom: '0.75rem',
+  },
+  title: {
+    fontSize: '1.25rem',
+    fontWeight: '700',
+    letterSpacing: '-0.01em',
+  },
+  closeBtn: {
+    background: 'none',
+    border: 'none',
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+    padding: '0.25rem',
+    borderRadius: '50%',
+    transition: 'var(--transition-smooth)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    border: '1px solid rgba(239, 68, 68, 0.15)',
+    borderRadius: '8px',
+    padding: '0.85rem 1rem',
+    marginBottom: '1.5rem',
+  },
+  errorText: {
+    color: 'var(--accent-red)',
+    fontSize: '0.85rem',
+    fontWeight: '500',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '1.25rem',
+  },
+  disabledInput: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+  actions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '1rem',
+    borderTop: '1px solid var(--border-color)',
+    paddingTop: '1.25rem',
+    marginTop: '0.5rem',
+  },
+  saveBtn: {
+    height: '42px',
+    justifyContent: 'center',
+    minWidth: '160px',
+  },
+};
